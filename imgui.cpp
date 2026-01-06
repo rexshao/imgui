@@ -7224,9 +7224,10 @@ static int ImGui::UpdateWindowManualResize(ImGuiWindow* window, int* border_hove
             corner_target = ImClamp(corner_target, clamp_min, clamp_max);
             CalcResizePosSizeFromAnyCorner(window, corner_target, def.CornerPosN, &pos_target, &size_target);
         }
-
+        //调整 改为默认不显示resize角
+        const bool resize_grip_visible = held || hovered;
         // Only lower-left grip is visible before hovering/activating
-        const bool resize_grip_visible = held || hovered || (resize_grip_n == 0 && (window->Flags & ImGuiWindowFlags_ChildWindow) == 0);
+        //const bool resize_grip_visible = held || hovered || (resize_grip_n == 0 && (window->Flags & ImGuiWindowFlags_ChildWindow) == 0);
         if (resize_grip_visible)
             resize_grip_col[resize_grip_n] = GetColorU32(held ? ImGuiCol_ResizeGripActive : hovered ? ImGuiCol_ResizeGripHovered : ImGuiCol_ResizeGrip);
     }
@@ -7333,7 +7334,8 @@ static int ImGui::UpdateWindowManualResize(ImGuiWindow* window, int* border_hove
             g.NavWindowingAccumDeltaSize = ImMax(g.NavWindowingAccumDeltaSize, clamp_rect.Min - window->Pos - window->Size); // We need Pos+Size >= clmap_rect.Min, so Size >= clmap_rect.Min - Pos, so size_delta >= clmap_rect.Min - window->Pos - window->Size
             g.NavWindowingToggleLayer = false;
             g.NavHighlightItemUnderNav = true;
-            resize_grip_col[0] = GetColorU32(ImGuiCol_ResizeGripActive);
+            //调整 改为默认不显示resize角
+            //resize_grip_col[0] = GetColorU32(ImGuiCol_ResizeGripActive);
             ImVec2 accum_floored = ImTrunc(g.NavWindowingAccumDeltaSize);
             if (accum_floored.x != 0.0f || accum_floored.y != 0.0f)
             {
@@ -7555,10 +7557,10 @@ void ImGui::RenderWindowDecorations(ImGuiWindow* window, const ImRect& title_bar
                 window->DrawList->PathFillConvex(col);
             }
         }
-
+        //调整 取消绘制外边框 防止调整大小出来一条直线
         // Borders (for dock node host they will be rendered over after the tab bar)
-        if (handle_borders_and_resize_grips && !window->DockNodeAsHost)
-            RenderWindowOuterBorders(window);
+        /*if (handle_borders_and_resize_grips && !window->DockNodeAsHost)
+            RenderWindowOuterBorders(window);*/
     }
     window->DC.NavLayerCurrent = ImGuiNavLayer_Main;
 }

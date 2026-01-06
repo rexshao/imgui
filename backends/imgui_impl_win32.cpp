@@ -1166,6 +1166,8 @@ static void ImGui_ImplWin32_CreateWindow(ImGuiViewport* viewport)
     viewport->PlatformRequestResize = false;
     viewport->PlatformHandle = viewport->PlatformHandleRaw = vd->Hwnd;
 
+    //调整 开启Alpha混合(透明背景)
+    ImGui_ImplWin32_EnableAlphaCompositing(vd->Hwnd);
     // Secondary viewports store their imgui context
     ::SetPropA(vd->Hwnd, "IMGUI_CONTEXT", ImGui::GetCurrentContext());
 }
