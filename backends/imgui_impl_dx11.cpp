@@ -382,7 +382,11 @@ void ImGui_ImplDX11_UpdateTexture(ImTextureData* tex)
         desc.Height = (UINT)tex->Height;
         desc.MipLevels = 1;
         desc.ArraySize = 1;
+#ifdef IMGUI_USE_BGRA_PACKED_COLOR
+        desc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+#else
         desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+#endif // IMGUI_USE_BGRA_PACKED_COLOR
         desc.SampleDesc.Count = 1;
         desc.Usage = D3D11_USAGE_DEFAULT;
         desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
@@ -397,7 +401,11 @@ void ImGui_ImplDX11_UpdateTexture(ImTextureData* tex)
         // Create texture view
         D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
         ZeroMemory(&srvDesc, sizeof(srvDesc));
+#ifdef IMGUI_USE_BGRA_PACKED_COLOR
+        srvDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+#else
         srvDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+#endif // IMGUI_USE_BGRA_PACKED_COLOR
         srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
         srvDesc.Texture2D.MipLevels = desc.MipLevels;
         srvDesc.Texture2D.MostDetailedMip = 0;
@@ -417,7 +425,7 @@ void ImGui_ImplDX11_UpdateTexture(ImTextureData* tex)
         IM_ASSERT(backend_tex->pTextureView == (ID3D11ShaderResourceView*)(intptr_t)tex->TexID);
         for (ImTextureRect& r : tex->Updates)
         {
-            D3D11_BOX box = { (UINT)r.x, (UINT)r.y, (UINT)0, (UINT)(r.x + r.w), (UINT)(r.y + r .h), (UINT)1 };
+            D3D11_BOX box = { (UINT)r.x, (UINT)r.y, (UINT)0, (UINT)(r.x + r.w), (UINT)(r.y + r.h), (UINT)1 };
             bd->pd3dDeviceContext->UpdateSubresource(backend_tex->pTexture, 0, &box, tex->GetPixelsAt(r.x, r.y), (UINT)tex->GetPitch(), 0);
         }
         tex->SetStatus(ImTextureStatus_OK);
@@ -483,7 +491,11 @@ bool    ImGui_ImplDX11_CreateDeviceObjects()
         {
             { "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)offsetof(ImDrawVert, pos), D3D11_INPUT_PER_VERTEX_DATA, 0 },
             { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,   0, (UINT)offsetof(ImDrawVert, uv),  D3D11_INPUT_PER_VERTEX_DATA, 0 },
-            { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)offsetof(ImDrawVert, col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+#ifdef IMGUI_USE_BGRA_PACKED_COLOR
+              { "COLOR",    0, DXGI_FORMAT_B8G8R8A8_UNORM, 0, (UINT)offsetof(ImDrawVert, col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+#else
+              { "COLOR",    0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, (UINT)offsetof(ImDrawVert, col), D3D11_INPUT_PER_VERTEX_DATA, 0 },
+#endif // IMGUI_USE_BGRA_PACKED_COLOR
         };
         if (bd->pd3dDevice->CreateInputLayout(local_layout, 3, vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize(), &bd->pInputLayout) != S_OK)
         {
@@ -818,7 +830,11 @@ static void ImGui_ImplDX11_InitMultiViewportSupport()
     // Default swapchain format
     DXGI_SWAP_CHAIN_DESC sd;
     ZeroMemory(&sd, sizeof(sd));
+#ifdef IMGUI_USE_BGRA_PACKED_COLOR
+    sd.BufferDesc.Format = DXGI_FORMAT_B8G8R8A8_UNORM;
+#else
     sd.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+#endif // IMGUI_USE_BGRA_PACKED_COLOR
     sd.SampleDesc.Count = 1;
     sd.SampleDesc.Quality = 0;
     sd.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
