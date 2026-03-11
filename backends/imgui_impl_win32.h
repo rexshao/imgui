@@ -26,7 +26,9 @@ IMGUI_IMPL_API bool     ImGui_ImplWin32_Init(void* hwnd);
 IMGUI_IMPL_API bool     ImGui_ImplWin32_InitForOpenGL(void* hwnd);
 IMGUI_IMPL_API void     ImGui_ImplWin32_Shutdown();
 IMGUI_IMPL_API void     ImGui_ImplWin32_NewFrame();
-
+// 必须在ImGui_ImplWin32_Init前调用
+IMGUI_IMPL_API void     ImGui_ImplWin32_SetWindowClass(const wchar_t* clsName);
+IMGUI_IMPL_API const wchar_t * ImGui_ImplWin32_GetWindowClass();
 // Win32 message handler your application need to call.
 // - Intentionally commented out in a '#if 0' block to avoid dragging dependencies on <windows.h> from this helper.
 // - You should COPY the line below into your .cpp code to forward declare the function and then you can call it.

@@ -234,6 +234,14 @@ static bool ImGui_ImplWin32_InitEx(void* hwnd, bool platform_has_own_dc)
 
     return true;
 }
+static  const wchar_t*  g_ClsName = NULL;
+
+IMGUI_IMPL_API void ImGui_ImplWin32_SetWindowClass(const wchar_t* clsName) {
+    g_ClsName = clsName;
+}
+IMGUI_IMPL_API  const wchar_t* ImGui_ImplWin32_GetWindowClass() {
+    return g_ClsName ? g_ClsName : L"ImGui Platform";
+}
 
 IMGUI_IMPL_API bool     ImGui_ImplWin32_Init(void* hwnd)
 {
@@ -1160,7 +1168,7 @@ static void ImGui_ImplWin32_CreateWindow(ImGuiViewport* viewport)
     RECT rect = { (LONG)viewport->Pos.x, (LONG)viewport->Pos.y, (LONG)(viewport->Pos.x + viewport->Size.x), (LONG)(viewport->Pos.y + viewport->Size.y) };
     ::AdjustWindowRectEx(&rect, vd->DwStyle, FALSE, vd->DwExStyle);
     vd->Hwnd = ::CreateWindowExW(
-        vd->DwExStyle, L"ImGui Platform", L"Untitled", vd->DwStyle,       // Style, class name, window name
+        vd->DwExStyle, ImGui_ImplWin32_GetWindowClass(), L"Untitled", vd->DwStyle,       // Style, class name, window name
         rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top,    // Window area
         vd->HwndParent, nullptr, ::GetModuleHandle(nullptr), nullptr);          // Owner window, Menu, Instance, Param
     vd->HwndOwned = true;
@@ -1460,7 +1468,7 @@ static void ImGui_ImplWin32_InitMultiViewportSupport(bool platform_has_own_dc)
     wcex.hCursor = nullptr;
     wcex.hbrBackground = (HBRUSH)(COLOR_BACKGROUND + 1);
     wcex.lpszMenuName = nullptr;
-    wcex.lpszClassName = L"ImGui Platform";
+    wcex.lpszClassName = ImGui_ImplWin32_GetWindowClass();
     wcex.hIconSm = nullptr;
     ::RegisterClassExW(&wcex);
 
@@ -1496,7 +1504,7 @@ static void ImGui_ImplWin32_InitMultiViewportSupport(bool platform_has_own_dc)
 
 static void ImGui_ImplWin32_ShutdownMultiViewportSupport()
 {
-    ::UnregisterClassW(L"ImGui Platform", ::GetModuleHandle(nullptr));
+    ::UnregisterClassW(ImGui_ImplWin32_GetWindowClass(), ::GetModuleHandle(nullptr));
     ImGui::DestroyPlatformWindows();
 }
 
