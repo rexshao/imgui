@@ -1155,6 +1155,24 @@ static HWND ImGui_ImplWin32_GetHwndFromViewport(ImGuiViewport* viewport)
     return nullptr;
 }
 
+static bool ImGui_ImplWin32_CanFocusWindow(HWND hwnd)
+{
+    return hwnd != nullptr && ::IsWindow(hwnd) != FALSE && ::IsWindowVisible(hwnd) != FALSE && ::IsIconic(hwnd) == FALSE;
+}
+
+static void ImGui_ImplWin32_SetWindowFocusFromHandle(HWND hwnd)
+{
+    if (!ImGui_ImplWin32_CanFocusWindow(hwnd))
+        return;
+    ::BringWindowToTop(hwnd);
+    if (::GetForegroundWindow() != hwnd)
+        ::SetForegroundWindow(hwnd);
+    if (::GetFocus() != hwnd)
+        ::SetFocus(hwnd);
+}
+
+static constexpr UINT IMGUI_IMPL_WIN32_WM_SET_VIEWPORT_FOCUS = WM_APP + 0x4B3;
+
 static void ImGui_ImplWin32_CreateWindow(ImGuiViewport* viewport)
 {
     ImGui_ImplWin32_ViewportData* vd = IM_NEW(ImGui_ImplWin32_ViewportData)();
@@ -1318,9 +1336,7 @@ static void ImGui_ImplWin32_SetWindowFocus(ImGuiViewport* viewport)
 {
     ImGui_ImplWin32_ViewportData* vd = (ImGui_ImplWin32_ViewportData*)viewport->PlatformUserData;
     IM_ASSERT(vd->Hwnd != 0);
-    ::BringWindowToTop(vd->Hwnd);
-    ::SetForegroundWindow(vd->Hwnd);
-    ::SetFocus(vd->Hwnd);
+    ImGui_ImplWin32_SetWindowFocusFromHandle(vd->Hwnd);
 }
 
 static bool ImGui_ImplWin32_GetWindowFocus(ImGuiViewport* viewport)
@@ -1413,6 +1429,9 @@ static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd,
     {
         switch (msg)
         {
+        case IMGUI_IMPL_WIN32_WM_SET_VIEWPORT_FOCUS:
+            ImGui_ImplWin32_SetWindowFocusFromHandle(hWnd);
+            return 0;
         case WM_CLOSE:
             viewport->PlatformRequestClose = true;
             return 0; // 0 = Operating system will ignore the message and not destroy the window. We close ourselves.
@@ -1430,8 +1449,12 @@ static LRESULT CALLBACK ImGui_ImplWin32_WndProcHandler_PlatformWindow(HWND hWnd,
                 auto wnd = ImGui::GetTopMostAndVisiblePopupModal();
                 if (wnd && wnd->Viewport->PlatformHandleRaw != hWnd)
                 {
-                    ImGui_ImplWin32_SetWindowFocus(wnd->Viewport);
-                    result = MA_NOACTIVATE;
+                    HWND focus_hwnd = (HWND)wnd->Viewport->PlatformHandleRaw;
+                    if (ImGui_ImplWin32_CanFocusWindow(focus_hwnd))
+                    {
+                        ::PostMessageW(focus_hwnd, IMGUI_IMPL_WIN32_WM_SET_VIEWPORT_FOCUS, 0, 0);
+                        return 0;
+                    }
                 }
             }
             break;
